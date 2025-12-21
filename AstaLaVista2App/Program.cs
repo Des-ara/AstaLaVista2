@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
@@ -5,7 +6,41 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddSession();  // ← AGGIUNTO PER LE SESSIONI
-builder.Services.AddDbContext<AuctionDb>(opt => opt.UseSqlite("Data Source=auctions.db"));
+// Configura Data Protection per Fly.io
+var dataProtectionPath = "/data/keys";
+
+// Prova a creare la directory, se fallisce usa una temp
+try
+{
+    if (!Directory.Exists("/data"))
+    {
+        Directory.CreateDirectory("/data");
+    }
+    if (!Directory.Exists(dataProtectionPath))
+    {
+        Directory.CreateDirectory(dataProtectionPath);
+    }
+    
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
+        .SetApplicationName("AstaLaVista2App");
+}
+catch (Exception ex)
+{
+    // Se /data non è scrivibile, usa directory temporanea
+    Console.WriteLine($"Warning: Cannot write to /data, using temp directory: {ex.Message}");
+    var tempPath = Path.Combine(Path.GetTempPath(), "dataprotection-keys");
+    Directory.CreateDirectory(tempPath);
+    
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(tempPath))
+        .SetApplicationName("AstaLaVista2App");
+}
+
+// Database con percorso persistente
+var dbPath = Path.Combine("/data", "auctions.db");
+builder.Services.AddDbContext<AuctionDb>(opt => 
+    opt.UseSqlite($"Data Source={dbPath}"));
 
 var app = builder.Build();
 
@@ -17,9 +52,13 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseStaticFiles();
-app.UseSession();  // ← AGGIUNTO PER LE SESSIONI
+app.UseSession();
 app.UseRouting();
 app.MapRazorPages();
+
+// Configura la porta per Fly.io
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Run();
 
