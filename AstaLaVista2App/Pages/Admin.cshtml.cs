@@ -13,7 +13,7 @@ public class AdminModel : PageModel
     [BindProperty] public string Title { get; set; } = "";
     [BindProperty] public string Description { get; set; } = "";
     [BindProperty] public decimal StartPrice { get; set; }
-    [BindProperty] public int Days { get; set; } = 7;
+    [BindProperty] public int Hours { get; set; } = 24;
     [BindProperty] public string? ImageUrl { get; set; } = "";
 
     public async Task OnGetAsync()
@@ -40,7 +40,7 @@ public class AdminModel : PageModel
             Description = Description,
             StartPrice = StartPrice,
             CurrentPrice = StartPrice,
-            EndDate = DateTime.Now.AddDays(Days),
+            EndDate = DateTime.Now.AddHours(Hours),
             ImageUrl = ImageUrl
         };
         _db.Auctions.Add(auction);
@@ -76,4 +76,32 @@ public class AdminModel : PageModel
         }
         return RedirectToPage();
     }
+
+    public async Task<IActionResult> OnPostDeleteUserAsync(int userId)
+{
+    if (HttpContext.Session.GetString("IsAdmin") != "True")
+        return RedirectToPage("/Index");
+
+    var currentUserId = HttpContext.Session.GetInt32("UserId") ?? 0;
+    
+    // Non puoi eliminare te stesso
+    if (userId == currentUserId)
+    {
+        return RedirectToPage();
+    }
+
+    var user = await _db.Users.FindAsync(userId);
+    if (user != null)
+    {
+        // Elimina anche tutte le offerte dell'utente
+        var userBids = await _db.Bids.Where(b => b.UserId == userId).ToListAsync();
+        _db.Bids.RemoveRange(userBids);
+        
+        // Elimina l'utente
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+    }
+    
+    return RedirectToPage();
+}
 }

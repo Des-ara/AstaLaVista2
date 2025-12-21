@@ -12,24 +12,53 @@ public class LoginModel : PageModel
     public string Error { get; set; } = "";
 
     public async Task<IActionResult> OnPostAsync()
+{
+    var hash = Helper.Hash(Password);
+    
+    // Cerca l'utente ignorando maiuscole/minuscole
+    var user = await _db.Users
+        .FirstOrDefaultAsync(u => u.Name.ToLower() == Name.ToLower() && u.Password == hash);
+    
+    if (user == null)
     {
-        var hash = Helper.Hash(Password);
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Name == Name && u.Password == hash);
+        // Controlla se esiste già un utente con quel nome (case-insensitive)
+        var existingUser = await _db.Users
+            .FirstOrDefaultAsync(u => u.Name.ToLower() == Name.ToLower());
         
-        if (user == null)
+        if (existingUser != null)
         {
-            // Controlla se è il primo utente
-        var isFirstUser = !await _db.Users.AnyAsync();
-
-            // Crea utente se non esiste
-            user = new User { Name = Name, Password = hash, IsAdmin = isFirstUser };
-            _db.Users.Add(user);
-            await _db.SaveChangesAsync();
+            // Utente esiste ma password sbagliata
+            Error = "Password errata!";
+            return Page();
         }
         
-        HttpContext.Session.SetInt32("UserId", user.Id);
-        HttpContext.Session.SetString("UserName", user.Name);
-        HttpContext.Session.SetString("IsAdmin", user.IsAdmin.ToString());
-        return RedirectToPage("/Index");
+        // Controlla se è il primo utente
+        var isFirstUser = !await _db.Users.AnyAsync();
+        
+        // Crea nuovo utente - salva il nome con la prima lettera maiuscola
+        user = new User 
+        { 
+            Name = CapitalizeFirstLetter(Name),  // Standardizza il nome
+            Password = hash,
+            IsAdmin = isFirstUser,
+            Wallet = 3700m
+        };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
     }
+    
+    HttpContext.Session.SetInt32("UserId", user.Id);
+    HttpContext.Session.SetString("UserName", user.Name);
+    HttpContext.Session.SetString("IsAdmin", user.IsAdmin.ToString());
+    return RedirectToPage("/Index");
+}
+
+// Metodo helper per capitalizzare la prima lettera
+private string CapitalizeFirstLetter(string text)
+{
+    if (string.IsNullOrEmpty(text))
+        return text;
+    
+    return char.ToUpper(text[0]) + text.Substring(1).ToLower();
+}
 }

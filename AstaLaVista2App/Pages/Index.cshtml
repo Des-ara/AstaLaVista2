@@ -10,13 +10,13 @@
         .card:hover { transform: translateY(-5px); transition: 0.2s; }
     </style>
 </head>
-<body>
+<body style="padding-bottom: 100px;">
     <nav class="navbar navbar-dark bg-primary">
     <div class="container">
-        <span class="navbar-brand">🏆 Asta La Vista 2.0</span>
+        <span class="navbar-brand">🏆 Asta La Vista 2</span>
         <span class="text-white">
             Ciao, @Model.UserName | 
-            💰 Portafoglio: €@Model.UserWallet
+            💰 Portafoglio: € @Model.UserWallet
             @if (HttpContext.Session.GetString("IsAdmin") == "True")
             {
                 <text> | <a href="/Admin" class="text-white">⚙️ Admin</a></text>
@@ -63,20 +63,32 @@
     </div>
 
     <script>
-        setInterval(() => {
-            document.querySelectorAll('.countdown').forEach(el => {
-                const end = new Date(el.dataset.end);
-                const diff = end - new Date();
-                if (diff <= 0) {
-                    el.innerHTML = '⏰ Terminata';
-                    el.classList.add('text-danger');
+    setInterval(() => {
+        document.querySelectorAll('.countdown').forEach(el => {
+            const end = new Date(el.dataset.end);
+            const diff = end - new Date();
+            if (diff <= 0) {
+                el.innerHTML = '⏰ Terminata';
+                el.classList.add('text-danger');
+            } else {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                if (days > 0) {
+                    el.innerHTML = `⏰ ${days}g ${hours}h ${minutes}m ${seconds}s`;
+                } else if (hours > 0) {
+                    el.innerHTML = `⏰ ${hours}h ${minutes}m ${seconds}s`;
+                } else if (minutes > 0) {
+                    el.innerHTML = `⏰ ${minutes}m ${seconds}s`;
                 } else {
-                    const h = Math.floor(diff / 3600000);
-                    const m = Math.floor((diff % 3600000) / 60000);
-                    el.innerHTML = `⏰ ${h}h ${m}m`;
+                    el.innerHTML = `⏰ ${seconds}s`;
+                    el.classList.add('text-danger', 'fw-bold');  // Rosso e grassetto negli ultimi minuti
                 }
-            });
-        }, 1000);
-    </script>
+            }
+        });
+    }, 1000);  // Aggiorna ogni secondo
+</script>
 </body>
 </html>
