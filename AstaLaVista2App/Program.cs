@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// NIENTE Data Protection - troppi problemi
 builder.Services.AddRazorPages()
     .AddRazorPagesOptions(options =>
     {
@@ -19,13 +18,16 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.Name = ".AstaSession.V3";  // ← CAMBIA IL NOME (aggiungi V3)
+    options.Cookie.Name = ".AstaSession.V3";
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
-// Database semplice - file locale
 builder.Services.AddDbContext<AuctionDb>(opt => 
     opt.UseSqlite("Data Source=/data/auctions.db"));
+
+// CONFIGURA LA PORTA PRIMA DI BUILD
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var app = builder.Build();
 
@@ -40,9 +42,6 @@ app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();
 app.MapRazorPages();
-
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Run();
 
