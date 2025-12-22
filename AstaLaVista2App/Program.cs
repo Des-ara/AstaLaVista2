@@ -2,14 +2,28 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddRazorPages();
-builder.Services.AddSession();  // ← AGGIUNTO PER LE SESSIONI
-// Configura Data Protection per Fly.io
+
+// Disabilita AntiForgery completamente
+builder.Services.AddRazorPages().AddRazorPagesOptions(options =>
+{
+    options.Conventions.ConfigureFilter(new IgnoreAntiforgeryTokenAttribute());
+});
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+// Data Protection per Fly.io
 var dataProtectionPath = "/data/keys";
 
-// Prova a creare la directory, se fallisce usa una temp
 try
 {
     if (!Directory.Exists("/data"))
@@ -27,7 +41,6 @@ try
 }
 catch (Exception ex)
 {
-    // Se /data non è scrivibile, usa directory temporanea
     Console.WriteLine($"Warning: Cannot write to /data, using temp directory: {ex.Message}");
     var tempPath = Path.Combine(Path.GetTempPath(), "dataprotection-keys");
     Directory.CreateDirectory(tempPath);
@@ -56,9 +69,19 @@ app.UseSession();
 app.UseRouting();
 app.MapRazorPages();
 
-// Configura la porta per Fly.io
+
+// Configura la porta
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://0.0.0.0:{port}");
+
+// Se siamo in produzione (Fly.io), usa 0.0.0.0, altrimenti localhost
+if (builder.Environment.IsProduction())
+{
+    app.Urls.Add($"http://0.0.0.0:{port}");
+}
+else
+{
+    app.Urls.Add($"http://localhost:{port}");
+}
 
 app.Run();
 

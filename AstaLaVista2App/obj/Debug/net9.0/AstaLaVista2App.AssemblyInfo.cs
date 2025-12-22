@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AstaLaVista2App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+571df996ccaec97ed0bfa296d0c07dc175b30e44")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+89847a06e34ace3b06e560754433b06445ff80c5")]
 [assembly: System.Reflection.AssemblyProductAttribute("AstaLaVista2App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AstaLaVista2App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
