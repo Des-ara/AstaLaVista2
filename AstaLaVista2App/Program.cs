@@ -42,14 +42,7 @@ app.UseRouting();
 app.MapRazorPages();
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-if (app.Environment.IsProduction())
-{
-    app.Urls.Add($"http://0.0.0.0:{port}");
-}
-else
-{
-    app.Urls.Add($"http://localhost:{port}");
-}
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Run();
 
