@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
+
+[IgnoreAntiforgeryToken]
 public class IndexModel : PageModel
 {
     private readonly AuctionDb _db;

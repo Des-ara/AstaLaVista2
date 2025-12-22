@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
+
+[IgnoreAntiforgeryToken]
 public class AdminModel : PageModel
 {
     private readonly AuctionDb _db;
