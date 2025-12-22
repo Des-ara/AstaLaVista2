@@ -7,6 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ignora COMPLETAMENTE gli errori di Data Protection
+builder.Services.AddDataProtection()
+    .SetApplicationName("AstaLaVista")
+    .DisableAutomaticKeyGeneration();
+
+
 builder.Services.AddRazorPages()
     .AddRazorPagesOptions(options =>
     {
@@ -18,8 +24,9 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.Name = ".AstaSession.V3";
+    options.Cookie.Name = ".AstaLaVista.V4";
     options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
 builder.Services.AddDbContext<AuctionDb>(opt => 
