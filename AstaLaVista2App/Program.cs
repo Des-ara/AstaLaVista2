@@ -19,7 +19,8 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.Name = ".AstaSession";
+    options.Cookie.Name = ".AstaSession.V3";  // ← CAMBIA IL NOME (aggiungi V3)
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 // Database semplice - file locale
