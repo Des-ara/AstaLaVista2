@@ -20,7 +20,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddDbContext<AuctionDb>(opt => 
-    opt.UseSqlite("Data Source=/data/auctions.db"));
+    opt.UseSqlite("Data Source=./auctions.db"));
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
