@@ -2,16 +2,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Ignora COMPLETAMENTE gli errori di Data Protection
-builder.Services.AddDataProtection()
-    .SetApplicationName("AstaLaVista")
-    .DisableAutomaticKeyGeneration();
-
 
 builder.Services.AddRazorPages()
     .AddRazorPagesOptions(options =>
@@ -24,21 +16,17 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.Name = ".AstaLaVista.V4";
-    options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    options.Cookie.Name = ".AstaSession.V5";
 });
 
 builder.Services.AddDbContext<AuctionDb>(opt => 
     opt.UseSqlite("Data Source=/data/auctions.db"));
 
-// CONFIGURA LA PORTA PRIMA DI BUILD
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var app = builder.Build();
 
-// Crea database
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AuctionDb>();
