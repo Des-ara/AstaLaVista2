@@ -7,57 +7,28 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Disabilita AntiForgery completamente
-builder.Services.AddRazorPages().AddRazorPagesOptions(options =>
-{
-    options.Conventions.ConfigureFilter(new IgnoreAntiforgeryTokenAttribute());
-});
+// NIENTE Data Protection - troppi problemi
+builder.Services.AddRazorPages()
+    .AddRazorPagesOptions(options =>
+    {
+        options.Conventions.ConfigureFilter(new Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute());
+    });
 
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.Name = ".AstaSession";
 });
 
-// Data Protection per Fly.io
-var dataProtectionPath = "/data/keys";
-
-try
-{
-    if (!Directory.Exists("/data"))
-    {
-        Directory.CreateDirectory("/data");
-    }
-    if (!Directory.Exists(dataProtectionPath))
-    {
-        Directory.CreateDirectory(dataProtectionPath);
-    }
-    
-    builder.Services.AddDataProtection()
-        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
-        .SetApplicationName("AstaLaVista2App");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Warning: Cannot write to /data, using temp directory: {ex.Message}");
-    var tempPath = Path.Combine(Path.GetTempPath(), "dataprotection-keys");
-    Directory.CreateDirectory(tempPath);
-    
-    builder.Services.AddDataProtection()
-        .PersistKeysToFileSystem(new DirectoryInfo(tempPath))
-        .SetApplicationName("AstaLaVista2App");
-}
-
-// Database con percorso persistente
-var dbPath = Path.Combine("/data", "auctions.db");
+// Database semplice - file locale
 builder.Services.AddDbContext<AuctionDb>(opt => 
-    opt.UseSqlite($"Data Source={dbPath}"));
+    opt.UseSqlite("Data Source=/data/auctions.db"));
 
 var app = builder.Build();
 
-// Crea DB se non esiste
+// Crea database
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AuctionDb>();
@@ -69,12 +40,8 @@ app.UseSession();
 app.UseRouting();
 app.MapRazorPages();
 
-
-// Configura la porta
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-
-// Se siamo in produzione (Fly.io), usa 0.0.0.0, altrimenti localhost
-if (builder.Environment.IsProduction())
+if (app.Environment.IsProduction())
 {
     app.Urls.Add($"http://0.0.0.0:{port}");
 }
