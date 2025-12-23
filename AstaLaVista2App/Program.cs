@@ -16,7 +16,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.Name = ".AstaSession.V5";
+    options.Cookie.Name = ".AstaSession.V6";
 });
 
 builder.Services.AddDbContext<AuctionDb>(opt => 
