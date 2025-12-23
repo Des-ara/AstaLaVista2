@@ -5,6 +5,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// CHIAVE FISSA per Data Protection - NON cambierà mai
+var keyBytes = Encoding.UTF8.GetBytes("AstaLaVista2025SecretKey123456789012");
+builder.Services.AddDataProtection()
+    .SetApplicationName("AstaLaVista")
+    .ProtectKeysWithDpapiNG(); // Usa una chiave derivata fissa
+
+
 builder.Services.AddRazorPages()
     .AddRazorPagesOptions(options =>
     {
